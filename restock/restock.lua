@@ -1,6 +1,6 @@
 function(event)
     if event == "MERCHANT_SHOW" then
-
+        
         local poisons = {
             ["8928"] = {
                 ["8924"] = 4,
@@ -56,7 +56,7 @@ function(event)
             end
             return restock_reagents
         end
-
+        
         local function buildMerchantTable()
             for i = 1, GetMerchantNumItems() do
                 local itemLink = GetMerchantItemLink(i)
@@ -65,14 +65,22 @@ function(event)
                     local reagentID = linkParse[2]
                     local stackSize = select(8, GetItemInfo(reagentID))
                     local price = select(3, GetMerchantItemInfo(i))
+                    if reagentID == "21177" then
+                        price = price / 20
+                    end
                     merchantItems[reagentID] = { idx = i, itemLink = itemLink, stackSize = stackSize, price = price }
                 end
             end
         end
         
-        local function restock(reagentID, quantity)
-            local have = GetItemCount(merchantItems[reagentID].itemLink)
-            local restock = quantity - have
+        local function restock(reagentID, quantity, check)
+            local check = check or false
+            local have = 0
+            local restock = quantity
+            if check then
+                have = GetItemCount(merchantItems[reagentID].itemLink)
+                restock = quantity - have
+            end
             local totalPurchase = restock
             if restock <= 0 then return end
             -- Need to buy in batches of max allowed stacks, e.g. 20
@@ -90,16 +98,18 @@ function(event)
         
         if merchantItems then
             for class, items in pairs(aura_env.config) do
-                for itemID, quantity in pairs(items) do
-                    if quantity > 0 and merchantItems[itemID] then
-                        restock(itemID, quantity)
-                    end
-                    if quantity > 0 and poisons[itemID] then
-                        local poison_restock = checkPoison(itemID, quantity)
-                        if poison_restock then
-                            for id, quant in pairs(poison_restock) do
-                                if merchantItems[id] then
-                                    restock(id, quant)
+                if class == aura_env.restock.className then
+                    for itemID, quantity in pairs(items) do
+                        if quantity > 0 and merchantItems[itemID] then
+                            restock(itemID, quantity, true)
+                        end
+                        if quantity > 0 and poisons[itemID] then
+                            local poison_restock = checkPoison(itemID, quantity)
+                            if poison_restock then
+                                for id, quant in pairs(poison_restock) do
+                                    if merchantItems[id] then
+                                        restock(id, quant, false)
+                                    end
                                 end
                             end
                         end
@@ -108,7 +118,13 @@ function(event)
             end
         end
         
-        return true
+        -- return true
     end
 end
 
+-- On Init section
+local className, classFilename, classId = UnitClass("player")
+if not aura_env.restock then
+    aura_env.restock = {}
+end
+aura_env.restock.className = className:lower()
