@@ -1,8 +1,9 @@
+-- On Init
 if not aura_env.dura then
     aura_env.dura = {}
 end
 
-function aura_env.dura:update()
+function aura_env.dura:Update()
     local slots = {
         1,
         3,
@@ -29,7 +30,14 @@ function aura_env.dura:update()
         end
     end
 
+    -- Check in case all durability items are taken off
+    if avg_durability == 0 then
+        avg_durability = string.format("\124cFFccfaf7%d%s\124r", 0, "%")
+        return
+    end
+
     avg_durability = math.floor(avg_durability / numItems)
+
 
     if avg_durability <= 25 then
         avg_durability = string.format("\124cFFff0000%d%s\124r", avg_durability, "%")
@@ -43,4 +51,16 @@ function aura_env.dura:update()
     aura_env.dura.avg_durability = avg_durability
 end
 
-aura_env.dura:update()
+aura_env.dura:Update()
+
+-- Trigger 1
+function(event)
+    if event == "UPDATE_INVENTORY_DURABILITY" then
+        aura_env.dura:Update()
+    end
+end
+
+-- Display Text Custom Function
+function()
+    return aura_env.dura.avg_durability
+end
