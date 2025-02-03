@@ -1,3 +1,4 @@
+-- Money
 -- 133789 Copper, 133787 Silver, 133785 Gold
 function(allstates, event, ...)
     if event == "PLAYER_MONEY" then
@@ -39,7 +40,6 @@ function(allstates, event, ...)
     elseif text:find("silver") then
         icon = 133787
     end
-    aura_env.text = text
     allstates[guid] = {
             show = true,
             changed = true,
@@ -51,4 +51,39 @@ function(allstates, event, ...)
         return true
     end
 end
+
+-- Items
+function(allstates, event, ...)
+    if select(5, ...) == UnitName("player") then
+        local text = select(1, ...)
+        local link = text:match("(|c.+|r)")
+        local name, link, quality, _, _, _, _, _, _, icon = GetItemInfo(link)
+        local r, g, b, hex = GetItemQualityColor(quality)
+        local itemCount = ""
+        -- % is an escape character for search pattern special characters such as '.'
+        if text:find("r%.") then
+            itemCount = "1"
+        else
+            itemCount = text:sub(text:find("rx") + 2, text:find("%.") - 1)
+        end
+        -- This guid is needed for the WA table to be unique and not override itself
+        local guid = select(11, ...)
+        aura_env.text = "|c" .. hex .. name .. "|cff00ff00 x " .. itemCount
+        aura_env.count = ""
+        if aura_env.config["count"] then
+            aura_env.count = GetItemCount(link) + itemCount
+        end
+        allstates[guid] = {
+            show = true,
+            changed = true,
+            progressType = "timed",
+            duration = aura_env.config["duration"],
+            icon = icon,
+            autoHide = true,
+            link = link,
+        }
+        return true
+    end
+end
+
 
