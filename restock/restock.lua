@@ -5,7 +5,7 @@ function(event)
 
         if aura_env.restock.merchantItems then
             for class, items in pairs(aura_env.config) do
-                if class == aura_env.restock.className then
+                if class == aura_env.restock.className or class == "ammo" then
                     for itemID, quantity in pairs(items) do
                         if quantity > 0 and aura_env.restock.merchantItems[itemID] then
                             aura_env.restock:Restock(itemID, quantity, true)
@@ -67,10 +67,8 @@ function aura_env.restock:BuildMerchantTable()
             local linkParse = { strsplit(":", itemLink) }
             local reagentID = linkParse[2]
             local stackSize = select(8, GetItemInfo(reagentID))
-            local price = select(3, GetMerchantItemInfo(i))
-            if reagentID == "21177" then
-                price = price / 20
-            end
+            local price, quantity = select(3, GetMerchantItemInfo(i))
+            price = price / quantity
             aura_env.restock.merchantItems[reagentID] = {
                 idx = i,
                 itemLink = itemLink,
