@@ -1,50 +1,33 @@
 -- Money
 -- 133789 Copper, 133787 Silver, 133785 Gold
+-- 133789 Copper, 133787 Silver, 133785 Gold
 function(allstates, event, ...)
     if event == "PLAYER_MONEY" then
-        local moneyDiff = 0
-        local moneyText = ""
         local currentMoney = GetMoney()
-        moneyDiff = currentMoney - aura_env.money
-        
+        local moneyDiff = currentMoney - aura_env.money
+        local coinText = GetCoinText(math.abs(moneyDiff))
+        local moneyString = GetMoneyString(math.abs(moneyDiff))
+        local moneyText = ""
         if moneyDiff > 0 then
-            moneyText = "You gain " .. GetCoinText(moneyDiff)
+            moneyText = "You |cff00ff00gain|r " .. moneyString
         else
-            moneyText = "You lose " .. GetCoinText(math.abs(moneyDiff))
+            moneyText = "You |cffff0000lose|r " .. moneyString
+            
         end
         aura_env.money = currentMoney
-        local guid = select(11, ...)
-    local icon = 133789
-    if moneyText:find("gold") then
-        icon = 133785
-    elseif moneyText:find("silver") then
-        icon = 133787
-    end
-    allstates[guid] = {
+        aura_env.moneyText = moneyText
+        local guid = GetTimePreciseSec()
+        local icon = 133789
+        if coinText:find("Gold") then
+            icon = 133785
+        elseif coinText:find("Silver") then
+            icon = 133787
+        end
+        allstates[guid] = {
             show = true,
             changed = true,
             progressType = "timed",
-            duration = aura_env.config["duration"],
-            icon = icon,
-            autoHide = true,
-        }
-        return true
-    end
-    if select(2, ...) == UnitName("player") or select(2, ...) == "" then
-    local text = select(1, ...)
-    -- This guid is needed for the WA table to be unique and not override itself
-    local guid = select(11, ...)
-    local icon = 133789
-    if text:find("gold") then
-        icon = 133785
-    elseif text:find("silver") then
-        icon = 133787
-    end
-    allstates[guid] = {
-            show = true,
-            changed = true,
-            progressType = "timed",
-            duration = aura_env.config["duration"],
+            duration = aura_env.config.duration,
             icon = icon,
             autoHide = true,
         }
@@ -70,6 +53,12 @@ function(allstates, event, ...)
         local guid = select(11, ...)
         aura_env.text = "|c" .. hex .. name .. "|cff00ff00 x " .. itemCount
         aura_env.count = ""
+        aura_env.region:SetScript("OnEnter", function(self, motion)
+            print("OnEnter")
+        end)
+        aura_env.region:SetScript("OnLeave", function(self, motion)
+            print("OnLeave")
+        end)
         if aura_env.config["count"] then
             aura_env.count = GetItemCount(link) + itemCount
         end
@@ -77,7 +66,8 @@ function(allstates, event, ...)
             show = true,
             changed = true,
             progressType = "timed",
-            duration = aura_env.config["duration"],
+            expirationTime = GetTime() + aura_env.config.duration,
+            duration = aura_env.config.duration,
             icon = icon,
             autoHide = true,
             link = link,

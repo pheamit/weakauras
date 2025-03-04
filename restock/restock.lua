@@ -4,8 +4,8 @@ function(event)
         aura_env.restock:BuildMerchantTable()
 
         if aura_env.restock.merchantItems then
-            for class, items in pairs(aura_env.config) do
-                if class == aura_env.restock.className or class == "ammo" then
+            for category, items in pairs(aura_env.config) do
+                if category == aura_env.restock.className or category == "ammo" or category == "misc" then
                     for itemID, quantity in pairs(items) do
                         if quantity > 0 and aura_env.restock.merchantItems[itemID] then
                             aura_env.restock:Restock(itemID, quantity, true)
