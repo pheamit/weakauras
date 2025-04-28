@@ -5,7 +5,7 @@ function(allstates, event, ...)
     if event == "PLAYER_MONEY" then
         local currentMoney = GetMoney()
         local moneyDiff = currentMoney - aura_env.money
-        local coinText = GetCoinText(math.abs(moneyDiff))
+        local coinText = C_CurrencyInfo.GetCoinText(math.abs(moneyDiff))
         local moneyString = GetMoneyString(math.abs(moneyDiff))
         local moneyText = ""
         if moneyDiff > 0 then
@@ -37,40 +37,42 @@ end
 
 -- Items
 function(allstates, event, ...)
-    if select(5, ...) == UnitName("player") then
+    if event == "CHAT_MSG_LOOT" and select(5, ...) == UnitName("player") then
         local text = select(1, ...)
         local link = text:match("(|c.+|r)")
-        local name, link, quality, _, _, _, _, _, _, icon = GetItemInfo(link)
-        local r, g, b, hex = GetItemQualityColor(quality)
+        local name, _, quality, _, _, _, _, _, _, icon = C_Item.GetItemInfo(link)
+        local r, g, b, hex = C_Item.GetItemQualityColor(quality)
         local itemCount = ""
         -- % is an escape character for search pattern special characters such as '.'
         if text:find("r%.") then
-            itemCount = "1"
+            itemsLooted = "1"
         else
-            itemCount = text:sub(text:find("rx") + 2, text:find("%.") - 1)
+            itemsLooted = text:sub(text:find("rx") + 2, text:find("%.") - 1)
         end
         -- This guid is needed for the WA table to be unique and not override itself
         local guid = select(11, ...)
-        aura_env.text = "|c" .. hex .. name .. "|cff00ff00 x " .. itemCount
-        aura_env.count = ""
-        aura_env.region:SetScript("OnEnter", function(self, motion)
-            print("OnEnter")
-        end)
-        aura_env.region:SetScript("OnLeave", function(self, motion)
-            print("OnLeave")
-        end)
-        if aura_env.config["count"] then
-            aura_env.count = GetItemCount(link) + itemCount
-        end
-        allstates[guid] = {
+        local text = "|c" .. hex .. name .. "|cff00ff00 x " .. itemsLooted
+        aura_env.item = {
+            guid = guid,
+            text = text,
+            link = link,
+            icon = icon,
+            looted = itemsLooted,
+            count = "",
+        }
+    end 
+    if event == "BAG_UPDATE_DELAYED" and aura_env.item then
+        local count = C_Item.GetItemCount(aura_env.item.link)
+        local totalCount = count > 0 and count or aura_env.item.looted
+        aura_env.item.count = aura_env.config["count"] and totalCount or ""
+        allstates[aura_env.item.guid] = {
             show = true,
             changed = true,
             progressType = "timed",
-            expirationTime = GetTime() + aura_env.config.duration,
             duration = aura_env.config.duration,
-            icon = icon,
+            icon = aura_env.item.icon,
             autoHide = true,
-            link = link,
+            link = aura_env.item.link,
         }
         return true
     end
