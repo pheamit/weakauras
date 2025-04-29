@@ -42,7 +42,7 @@ function(allstates, event, ...)
         local link = text:match("(|c.+|r)")
         local name, _, quality, _, _, _, _, _, _, icon = C_Item.GetItemInfo(link)
         local r, g, b, hex = C_Item.GetItemQualityColor(quality)
-        local itemCount = ""
+        local itemsLooted = ""
         -- % is an escape character for search pattern special characters such as '.'
         if text:find("r%.") then
             itemsLooted = "1"
