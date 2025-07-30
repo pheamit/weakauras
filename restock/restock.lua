@@ -53,6 +53,10 @@ if not aura_env.restock then
             ["5173"] = 5,
             ["8925"] = 1,
         },
+        ["20844"] = {
+            ["5173"] = 7,
+            ["8925"] = 1,
+        },
     }
 end
 local className, classFilename, classId = UnitClass("player")
@@ -66,7 +70,7 @@ function aura_env.restock:BuildMerchantTable()
         if itemLink then
             local linkParse = { strsplit(":", itemLink) }
             local reagentID = linkParse[2]
-            local stackSize = select(8, GetItemInfo(reagentID))
+            local stackSize = select(8, C_Item.GetItemInfo(reagentID))
             local price, quantity = select(3, GetMerchantItemInfo(i))
             price = price / quantity
             aura_env.restock.merchantItems[reagentID] = {
@@ -82,7 +86,7 @@ end
 
 function aura_env.restock:AddPoisonReagents(poisonID, quantity)
     -- Check if there are any poisons left in inventory
-    local restock = quantity - GetItemCount(poisonID)
+    local restock = quantity - C_Item.GetItemCount(poisonID)
     if restock <= 0 then return end
     for reagentID, quant in pairs(aura_env.restock.poisons[poisonID]) do
         if aura_env.restock.poisonReagents[reagentID] then
@@ -106,7 +110,7 @@ function aura_env.restock:Restock(reagentID, quantity, check)
     local have = 0
     local restock = quantity
     if check then
-        have = GetItemCount(aura_env.restock.merchantItems[reagentID].itemLink)
+        have = C_Item.GetItemCount(aura_env.restock.merchantItems[reagentID].itemLink)
         restock = quantity - have
     end
     local totalPurchase = restock
@@ -124,5 +128,5 @@ function aura_env.restock:Restock(reagentID, quantity, check)
         totalPurchase ..
         " " ..
         aura_env.restock.merchantItems[reagentID].itemLink ..
-        " for: " .. GetCoinTextureString(totalPurchase * aura_env.restock.merchantItems[reagentID].price))
+        " for: " .. C_CurrencyInfo.GetCoinTextureString(totalPurchase * aura_env.restock.merchantItems[reagentID].price))
 end

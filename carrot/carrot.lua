@@ -103,7 +103,7 @@ end
 
 -- Trigger 4  condition code
 if not IsMounted() and not InCombatLockdown() and aura_env.trinkets:IsCarrotEquipped() and aura_env.config.fallbackTrinket ~= "" then
-    if GetItemCount(aura_env.config.fallbackTrinket) == 0 then
+    if C_Item.GetItemCount(aura_env.config.fallbackTrinket) == 0 then
         if aura_env.trinkets.fallbackNotFound then return end
         print(string.format("\124cFF85e5ccCarrotEnjoyer\124r: Carrot equipped, but %s not found in bags",
             aura_env.config.fallbackTrinket))
@@ -115,11 +115,11 @@ if not IsMounted() and not InCombatLockdown() and aura_env.trinkets:IsCarrotEqui
 end
 
 if not IsMounted() and not InCombatLockdown() and aura_env.boots.spursBoots and aura_env.boots.equipped == aura_env.boots.spursBoots then
-    if GetItemCount(aura_env.boots.regularBoots) == 0 then return end
+    if C_Item.GetItemCount(aura_env.boots.regularBoots) == 0 then return end
     aura_env.trinkets:TryEquip(aura_env.boots.regularBoots, 8)
 end
 
 if not IsMounted() and not InCombatLockdown() and aura_env.gloves.ridingGloves and aura_env.gloves.equipped == aura_env.gloves.ridingGloves then
-    if GetItemCount(aura_env.gloves.regularGloves) == 0 then return end
+    if C_Item.GetItemCount(aura_env.gloves.regularGloves) == 0 then return end
     aura_env.trinkets:TryEquip(aura_env.gloves.regularGloves, 10)
 end
