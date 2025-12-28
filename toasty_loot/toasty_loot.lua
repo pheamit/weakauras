@@ -6,6 +6,7 @@ aura_env.money = GetMoney()
 -- Money Trigger
 -- TSU: PLAYER_MONEY
 -- 133789 Copper, 133787 Silver, 133785 Gold
+--- @diagnostic disable-next-line:miss-name
 function(allstates, event, ...)
     if event == "PLAYER_MONEY" then
         local currentMoney = GetMoney()
@@ -67,14 +68,13 @@ function aura_env:getItemBasics(itemInfo)
     local itemID, _, _, _, icon = C_Item.GetItemInfoInstant(itemInfo)
     local name = C_Item.GetItemNameByID(itemID)
     local quality = C_Item.GetItemQualityByID(itemID)
-    
     local hex = "ffffffff"
     if quality then
         local _, _, _, hexColor = C_Item.GetItemQualityColor(quality)
         hex = hexColor or hex
     end
     
-    return itemID, icon, name or "", hex
+    return itemID, icon, name or "", hex, quality
 end
 
 function aura_env:getFreeSlotsText()
@@ -94,8 +94,16 @@ function aura_env:getFreeSlotsText()
     end
 end
 
-function aura_env:getAuctionPriceString(itemID, quantity)
+function aura_env:getAuctionPriceString(itemID, quantity, quality)
     if not aura_env.isAucAddonLoaded then return "" end
+    local vendorPrice
+    if quality == 0 then
+        vendorPrice = select(11, C_Item.GetItemInfo(itemID))
+        if not vendorPrice then
+            return
+        end
+        return GetMoneyString((vendorPrice * (quantity or 0)) or 0, true) or ""
+    end
     if aura_env.auctionatorLoaded and _G.Auctionator.API and _G.Auctionator.API.v1 then
         local unit = aura_env.getPrice("Toasty Loot", itemID) or 0
         return GetMoneyString((unit * (quantity or 0)) or 0, true) or ""
@@ -112,13 +120,24 @@ end
 
 -- Items Trigger
 -- TSU: CHAT_MSG_LOOT,BAG_UPDATE_DELAYED
-function(allstates, event, ...)    
+--- @diagnostic disable-next-line:miss-name
+function(allstates, event, ...)
+    if event == "CHAT_MSG_LOOT" and aura_env.config.qirajiArtifact and select(5, ...) ~= aura_env.playerName then
+        local chatText = ...
+        local itemLink = aura_env:getItemLinkFromText(chatText)
+        if not itemLink then return false end
+        local itemID, itemIcon, itemName, itemHexColor = aura_env:getItemBasics(itemLink)
+        local playerName = select(5, ...)
+        if itemID == 21230 then
+            WeakAuras.ScanEvents("ANCIENT_QIRAJI_ARTIFACT", playerName, itemLink)
+        end
+    end
     if event == "CHAT_MSG_LOOT" and select(5, ...) == aura_env.playerName then
         local chatText = ...
         local itemLink = aura_env:getItemLinkFromText(chatText)
         if not itemLink then return false end
         
-        local itemID, itemIcon, itemName, itemHexColor = aura_env:getItemBasics(itemLink)
+        local itemID, itemIcon, itemName, itemHexColor, quality = aura_env:getItemBasics(itemLink)
         if not itemID then return false end
         
         local lootedQuantity = aura_env:getItemQuantityFromText(chatText)
@@ -140,6 +159,7 @@ function(allstates, event, ...)
                 name           = itemName,
                 lootText       = "",
                 itemsLooted    = lootedQuantity,
+                quality        = quality,
             }
         end
         return false
@@ -150,11 +170,12 @@ function(allstates, event, ...)
         
         for itemID, state in pairs(allstates) do
             if aura_env.config.count then
-                local inventoryCount = aura_env:getInventoryCount(itemID)
-                state.itemCount = (inventoryCount and inventoryCount > 0) and inventoryCount or (state.itemsLooted or 0)
+                local invCount, bankCount = aura_env:getInventoryCount(itemID)
+                state.invCount = (invCount and invCount > 0) and invCount or (state.itemsLooted or 0)
+                state.bankCount = bankCount or 0
             end
             
-            state.auctionPrice = aura_env:getAuctionPriceString(itemID, state.itemsLooted)
+            state.auctionPrice = aura_env:getAuctionPriceString(itemID, state.itemsLooted, state.quality)
             state.lootText     = ("|c%s%s|cff00ff00 x %d"):format(state.hex, state.name, state.itemsLooted)
             state.freeSlots    = freeSlotsText
             state.show    = true
@@ -166,4 +187,16 @@ function(allstates, event, ...)
     
     return false
 end
+
+-- Items Trigger
+-- Event: ANCIENT_QIRAJI_ARTIFACT
+--- @diagnostic disable-next-line:miss-name
+function(event, ...)
+    local playerName, itemLink = ...
+    aura_env.qirajiLooter = WA_ClassColorName(playerName)
+    aura_env.qirajiLink = itemLink
+    return true        
+end
+
+
 

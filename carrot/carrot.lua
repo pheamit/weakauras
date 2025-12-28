@@ -102,7 +102,7 @@ function aura_env.trinkets:IsCarrotEquipped()
 end
 
 function aura_env.trinkets:Enforce()
-    if not isActive() then return end
+    if not isActive() or UnitOnTaxi("player") then return end
     aura_env.trinkets:Update()
     if not IsMounted() and not InCombatLockdown() and aura_env.trinkets:IsCarrotEquipped() and aura_env.config.fallbackTrinket ~= "" then
         if C_Item.GetItemCount(aura_env.config.fallbackTrinket) == 0 then

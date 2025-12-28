@@ -1,0 +1,6 @@
+{
+  "Lua.workspace.library": ["D:/personal/projects/lua/WeakAuras2"],
+  "Lua.runtime.version": "Lua 5.1",
+  "Lua.diagnostics.globals": ["WeakAuras", "aura_env"],
+  "Lua.workspace.checkThirdParty": false
+}
