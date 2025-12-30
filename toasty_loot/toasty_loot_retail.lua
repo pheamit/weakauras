@@ -1,10 +1,9 @@
-local aura_env -- getting rid of the "undefined global" warning
-
 -- Money Actions Custom Init
 aura_env.money = GetMoney()
 
 -- Money Trigger
 -- TSU: PLAYER_MONEY
+--- @diagnostic disable-next-line:miss-name
 function(allstates, event, ...)
     if event == "PLAYER_MONEY" then
         local currentMoney = GetMoney()
@@ -42,27 +41,27 @@ function(allstates, event, ...)
 end
 
 -- Items Actions Custom Init
-local _, isAuctionatorLoaded = C_AddOns.IsAddOnLoaded("Auctionator")
-aura_env.isAucLoaded = isAuctionatorLoaded
+aura_env.auctionatorLoaded = select(2, C_AddOns.IsAddOnLoaded("Auctionator"))
+aura_env.tsmLoaded = select(2, C_AddOns.IsAddOnLoaded("TradeSkillMaster"))
+aura_env.tsmPrice = {"dbmarket", "dbminbuyout", "dbregionsaleavg", "dbregionmarketavg"}
+aura_env.isAucAddonLoaded = aura_env.auctionatorLoaded or aura_env.tsmLoaded
 if _G.Auctionator and _G.Auctionator.API and _G.Auctionator.API.v1 then
     aura_env.getPrice = _G.Auctionator.API.v1.GetAuctionPriceByItemID
+elseif _G.TSM_API and _G.TSM_API.GetCustomPriceValue then
+    aura_env.getPrice = _G.TSM_API.GetCustomPriceValue
 end
 
--- Store the player's GUID to quickly compare against loot events
 aura_env.playerGUID = UnitGUID("player")
 
--- Extract item link from chat message
 function aura_env:getItemLinkFromText(chatText)
   return chatText and chatText:match("(|c.+|r)")
 end
 
--- Parse quantity of items from chat message (default 1)
 function aura_env:getItemQuantityFromText(chatText)
   local quantityString = chatText and chatText:match("x(%d+)")
   return tonumber(quantityString) or 1
 end
 
--- Get item quality hex color, defaults to white
 function aura_env:getItemQualityHex(itemID)
   local itemQuality = itemID and C_Item.GetItemQualityByID(itemID)
   if itemQuality then
@@ -72,7 +71,6 @@ function aura_env:getItemQualityHex(itemID)
   return "ffffffff"
 end
 
--- Return reagent quality markup if item is crafting reagent
 function aura_env:getReagentQualityMarkup(itemID)
   if not itemID then return "" end
   local _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, isCraftingReagent = C_Item.GetItemInfo(itemID)
@@ -81,7 +79,6 @@ function aura_env:getReagentQualityMarkup(itemID)
   return (reagentQuality and C_Texture.GetCraftingReagentQualityChatIcon(reagentQuality)) or ""
 end
 
--- Calculate free bag slots and return as colored text
 function aura_env:getColoredFreeSlotsText(enabled)
   if not enabled then return "" end
   local totalFreeSlots = 0
@@ -98,17 +95,31 @@ function aura_env:getColoredFreeSlotsText(enabled)
   end
 end
 
--- Get auction price string for item * quantity, or empty if not configured
-function aura_env:getAuctionPriceString(itemID, quantity)
-  if not (aura_env.config.auctionPrice and aura_env.isAucLoaded and aura_env.getPrice) then
+function aura_env:getAuctionPriceString(itemID, quantity, quality)
+  if not aura_env.isAucAddonLoaded then
     return ""
   end
-  local unitPrice = aura_env.getPrice("Toasty Loot", itemID) or 0
-  return GetMoneyString((unitPrice * (quantity or 0)) or 0, true) or ""
+  local vendorPrice
+  if quality == 0 then
+    vendorPrice = select(11, C_Item.GetItemInfo(itemID))
+        if not vendorPrice then
+            return ""
+        end
+        return GetMoneyString((vendorPrice * (quantity or 0)) or 0, true) or ""
+  end
+  if aura_env.auctionatorLoaded and _G.Auctionator.API and _G.Auctionator.API.v1 then
+        local unit = aura_env.getPrice("Toasty Loot", itemID) or 0
+        return GetMoneyString((unit * (quantity or 0)) or 0, true) or ""
+  elseif aura_env.tsmLoaded and _G.TSM_API and _G.TSM_API.GetCustomPriceValue then
+        local itemString = _G.TSM_API.ToItemString(tostring(itemID))
+        local unit = aura_env.getPrice(aura_env.tsmPrice[aura_env.config.auctionPriceGroup.tsmPrice] or "dbmarket", itemString) or 0
+        return GetMoneyString((unit * (quantity or 0)) or 0, true) or ""
+  end
 end
 
 -- Items Trigger
 -- TSU: CHAT_MSG_LOOT,BAG_UPDATE_DELAYED
+--- @diagnostic disable-next-line:miss-name
 function(allstates, event, ...)
   if event == "CHAT_MSG_LOOT" then
     local chatText, _, _, _, _, _, _, _, _, _, _, messageGUID = ...
@@ -121,6 +132,7 @@ function(allstates, event, ...)
     if not itemID then return false end
 
     local lootedQuantity  = aura_env:getItemQuantityFromText(chatText)
+    local quality = C_Item.GetItemQualityByID(itemID)
     local itemName = C_Item.GetItemNameByID(itemID) or ""
     local itemHexColor  = aura_env:getItemQualityHex(itemID)
 
@@ -142,6 +154,7 @@ function(allstates, event, ...)
         lootText       = "",
         itemsLooted    = lootedQuantity,
         reagentQuality = aura_env:getReagentQualityMarkup(itemID),
+        quality        = quality,
       }
     end
     return false
@@ -156,7 +169,7 @@ function(allstates, event, ...)
         state.itemCount = (inventoryCount > 0) and inventoryCount or (state.itemsLooted or 0)
       end
 
-      state.auctionPrice = aura_env:getAuctionPriceString(itemID, state.itemsLooted)
+      state.auctionPrice = aura_env:getAuctionPriceString(itemID, state.itemsLooted, state.quality)
       state.lootText     = ("|c%s%s|cff00ff00 x %d"):format(state.hex, state.name, state.itemsLooted)
       state.freeSlots    = aura_env.config.freeSpace and freeSlotsText or ""
 
@@ -169,4 +182,3 @@ function(allstates, event, ...)
 
   return false
 end
-
