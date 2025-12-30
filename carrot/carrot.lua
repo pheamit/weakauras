@@ -1,14 +1,15 @@
--- on Init action
-local aura_env = {} -- just for the IDE errors
-
 if not aura_env.trinkets then
+    _G.CarrotEnjoyer = _G.CarrotEnjoyer or {}
+    _G.CarrotEnjoyer.warned = _G.CarrotEnjoyer.warned or false
     local slots = { 13, 14 }
     aura_env.enabled = true
     aura_env.pvpMode = true
     aura_env.protected = false
     aura_env.trinkets = {}
     aura_env.ticker = nil
+    aura_env.tickerId = 0
     aura_env.trinkets.scheduledTrinkets = {}
+    aura_env.trinkets.delayActive = false
     aura_env.trinkets.carrot = 11122
     aura_env.trinkets.slotId = slots[aura_env.config.trinket_slot]
     aura_env.trinkets.fallbackNotFound = false
@@ -19,17 +20,40 @@ local function isActive()
     return aura_env.enabled and WeakAuras.IsAuraLoaded(aura_env.id)
 end
 
+local function Print(msg)
+    print((">\124cFF85e5ccCarrotEnjoyer\124r< %s"):format(msg))
+end
+
+local function getTickerStore()
+    if not _G.CarrotEnjoyerTickerStore then
+        _G.CarrotEnjoyerTickerStore = {}
+    end
+    return _G.CarrotEnjoyerTickerStore
+end
+
 local function startTicker()
-    if aura_env.ticker or not isActive() then return end
+    if not isActive() then return end
+    local store = getTickerStore()
+    if store[aura_env.id] then
+        aura_env.ticker = store[aura_env.id]
+        return
+    end
+    aura_env.tickerId = aura_env.tickerId + 1
     aura_env.ticker = C_Timer.NewTicker(5, function()
         aura_env.trinkets:Enforce()
     end)
+    store[aura_env.id] = aura_env.ticker
 end
 
 local function stopTicker()
     if aura_env.ticker then
         aura_env.ticker:Cancel()
         aura_env.ticker = nil
+    end
+    local store = getTickerStore()
+    if store[aura_env.id] then
+        store[aura_env.id]:Cancel()
+        store[aura_env.id] = nil
     end
 end
 
@@ -79,18 +103,47 @@ function aura_env.trinkets:Update()
     end
 end
 
-function aura_env.trinkets:TryEquip(item, slotId)
+function aura_env.trinkets:TryEquip(item, slotId, skipDelay)
     if not isActive() then return end
+    if item == "" and not _G.CarrotEnjoyer.warned then
+        Print("Consider setting up the items! Type /wa -> Carrot Enjoyer -> Custom Options tab")
+        _G.CarrotEnjoyer.warned = true
+        return
+    elseif item == "" and _G.CarrotEnjoyer.warned then
+        return
+    end
     if InCombatLockdown() then
         aura_env.trinkets.scheduledTrinkets[item] = slotId
         return
     end
-    -- Item not found
-    if C_Item.GetItemCount(item) == 0 then return end
-    local _, duration, enable = GetInventoryItemCooldown("player", slotId)
-    if enable == 1 and duration <= 30 and aura_env.protected then
+    if C_Item.GetItemCount(item) == 0 then
+        Print(("item %s not found"):format(item))
         return
     end
+
+    local _, duration, enable = GetInventoryItemCooldown("player", slotId)
+    if enable == 1 and duration <= 30 and aura_env.protected then return end
+
+    local delayGroup = aura_env.config.delayGatheringGroup
+    if delayGroup.toggleDelay and not skipDelay then
+        if aura_env.trinkets.delayActive then return end
+        local itemLink = GetInventoryItemLink("player", slotId)
+        local enchants = { ":844:", ":845:", ":906:", ":909:" }
+        for _, enchant in ipairs(enchants) do
+            if string.find(tostring(itemLink), enchant) then
+                Print(("delaying %s swap for %d seconds"):format(itemLink, delayGroup.delayDuration))
+                aura_env.trinkets.delayActive = true
+                stopTicker()
+                C_Timer.After(delayGroup.delayDuration, function()
+                    aura_env.trinkets.delayActive = false
+                    aura_env.trinkets:TryEquip(item, slotId, true)
+                    startTicker()
+                end)
+                return
+            end
+        end
+    end
+
     C_Item.EquipItemByName(item, slotId)
     aura_env.trinkets:Update()
 end
@@ -107,7 +160,7 @@ function aura_env.trinkets:Enforce()
     if not IsMounted() and not InCombatLockdown() and aura_env.trinkets:IsCarrotEquipped() and aura_env.config.fallbackTrinket ~= "" then
         if C_Item.GetItemCount(aura_env.config.fallbackTrinket) == 0 then
             if aura_env.trinkets.fallbackNotFound then return end
-            print(string.format("\124cFF85e5ccCarrotEnjoyer\124r: Carrot equipped, but %s not found in bags",
+            Print(string.format("Carrot equipped, but %s not found in bags",
                 aura_env.config.fallbackTrinket))
             aura_env.trinkets.fallbackNotFound = true
             return
