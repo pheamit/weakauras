@@ -1,6 +1,7 @@
 if not aura_env.trinkets then
     _G.CarrotEnjoyer = _G.CarrotEnjoyer or {}
     _G.CarrotEnjoyer.warned = _G.CarrotEnjoyer.warned or false
+    _G.CarrotEnjoyer.notFound = _G.CarrotEnjoyer.notFound or {}
     local slots = { 13, 14 }
     aura_env.enabled = true
     aura_env.pvpMode = true
@@ -116,8 +117,9 @@ function aura_env.trinkets:TryEquip(item, slotId, skipDelay)
         aura_env.trinkets.scheduledTrinkets[item] = slotId
         return
     end
-    if C_Item.GetItemCount(item) == 0 then
-        Print(("item %s not found"):format(item))
+    if C_Item.GetItemCount(item) == 0 and not _G.CarrotEnjoyer.notFound[item] then
+        Print(("%s not found in bags"):format(item))
+        _G.CarrotEnjoyer.notFound[item] = true
         return
     end
 
