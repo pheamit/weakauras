@@ -46,6 +46,7 @@ end
 -- Items Actions Custom Init
 aura_env.auctionatorLoaded = select(2, C_AddOns.IsAddOnLoaded("Auctionator"))
 aura_env.tsmLoaded = select(2, C_AddOns.IsAddOnLoaded("TradeSkillMaster"))
+aura_env.tsmPrice = {"dbmarket", "dbminbuyout", "dbregionsaleavg", "dbregionmarketavg"}
 aura_env.isAucAddonLoaded = aura_env.auctionatorLoaded or aura_env.tsmLoaded
 if _G.Auctionator and _G.Auctionator.API and _G.Auctionator.API.v1 then
     aura_env.getPrice = _G.Auctionator.API.v1.GetAuctionPriceByItemID
@@ -100,7 +101,7 @@ function aura_env:getAuctionPriceString(itemID, quantity, quality)
     if quality == 0 then
         vendorPrice = select(11, C_Item.GetItemInfo(itemID))
         if not vendorPrice then
-            return
+            return ""
         end
         return GetMoneyString((vendorPrice * (quantity or 0)) or 0, true) or ""
     end
@@ -122,6 +123,7 @@ end
 -- TSU: CHAT_MSG_LOOT,BAG_UPDATE_DELAYED
 --- @diagnostic disable-next-line:miss-name
 function(allstates, event, ...)
+    C_UIColor:GetColors()
     if event == "CHAT_MSG_LOOT" and aura_env.config.qirajiArtifact and select(5, ...) ~= aura_env.playerName then
         local chatText = ...
         local itemLink = aura_env:getItemLinkFromText(chatText)
