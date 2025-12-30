@@ -4,6 +4,7 @@
     "NUM_BAG_SLOTS",
     "NUM_TOTAL_EQUIPPED_BAG_SLOTS",
     "NUM_REAGENTBAG_SLOTS",
-    "Wrap"
+    "Wrap",
+    "COLOR"
   ]
 }
