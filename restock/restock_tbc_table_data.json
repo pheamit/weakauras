@@ -1,0 +1,1307 @@
+{
+  "d": {
+    "actions": {
+      "finish": [],
+      "init": {
+        "custom": "function aura_env:DebugPrint(message)\n    if not aura_env.restock.debug then return end\n    print(\">\\124cFF85e5ccRestock\\124r< [DEBUG] \" .. message)\nend\n\nfunction aura_env:Print(message)\n    print(\">\\124cFF85e5ccRestock\\124r< \" .. message)\nend\n\nlocal version = select(4, GetBuildInfo())\nif not aura_env.restock then\n    aura_env.restock = {}\n    aura_env.restock.debug = false\n    aura_env.restock.totalSpent = 0\n    aura_env.restock.merchantItems = {}\n    aura_env.restock.poisonReagents = {}\n    aura_env.restock.poisons = {}\n    local vanillaPoisons = {\n        [\"3775\"] = {\n            [\"2930\"] = 1,\n            [\"3371\"] = 1,\n            name = \"Crippling Poison\",\n        },\n        [\"3776\"] = {\n            [\"8923\"] = 3,\n            [\"8925\"] = 1,\n            name = \"Crippling Poison II\",\n        },\n        [\"2892\"] = {\n            [\"5173\"] = 1,\n            [\"3372\"] = 1,\n            name = \"Deadly Poison\",\n        },\n        [\"2893\"] = {\n            [\"5173\"] = 2,\n            [\"3372\"] = 1,\n            name = \"Deadly Poison II\",\n        },\n        [\"8984\"] = {\n            [\"5173\"] = 1,\n            [\"8925\"] = 1,\n            name = \"Deadly Poison III\",\n        },\n        [\"8985\"] = {\n            [\"5173\"] = 5,\n            [\"8925\"] = 1,\n            name = \"Deadly Poison IV\",\n        },\n        [\"20844\"] = {\n            [\"5173\"] = 7,\n            [\"8925\"] = 1,\n            name = \"Deadly Poison V\",\n        },\n        [\"6947\"] = {\n            [\"2928\"] = 1,\n            [\"3371\"] = 1,\n            name = \"Instant Poison\",\n        },\n        [\"6949\"] = {\n            [\"2928\"] = 1,\n            [\"3372\"] = 1,\n            name = \"Instant Poison II\",\n        },\n        [\"6950\"] = {\n            [\"8924\"] = 2,\n            [\"3372\"] = 1,\n            name = \"Instant Poison III\",\n        },\n        [\"8926\"] = {\n            [\"8924\"] = 1,\n            [\"8925\"] = 1,\n            name = \"Instant Poison IV\",\n        },\n        [\"8927\"] = {\n            [\"8924\"] = 2,\n            [\"8925\"] = 1,\n            name = \"Instant Poison V\",\n        },\n        [\"8928\"] = {\n            [\"8924\"] = 4,\n            [\"8925\"] = 1,\n            name = \"Instant Poison VI\",\n        },\n        [\"5237\"] = {\n            [\"2928\"] = 1,\n            [\"3371\"] = 1,\n            name = \"Mind-numbing Poison\",\n        },\n        [\"6951\"] = {\n            [\"8923\"] = 1,\n            [\"3372\"] = 1,\n            name = \"Mind-numbing Poison II\",\n        },\n        [\"9186\"] = {\n            [\"8924\"] = 2,\n            [\"8923\"] = 2,\n            [\"8925\"] = 1,\n            name = \"Mind-numbing Poison III\",\n        },\n        [\"10918\"] = {\n            [\"2930\"] = 1,\n            [\"3372\"] = 1,\n            name = \"Wound Poison\",\n        },\n        [\"10920\"] = {\n            [\"2930\"] = 1,\n            [\"5173\"] = 1,\n            [\"3372\"] = 1,\n            name = \"Wound Poison II\",\n        },\n        [\"10921\"] = {\n            [\"8923\"] = 1,\n            [\"8925\"] = 1,\n            name = \"Wound Poison III\",\n        },\n        [\"10922\"] = {\n            [\"5173\"] = 2,\n            [\"8923\"] = 2,\n            [\"8925\"] = 1,\n            name = \"Wound Poison IV\",\n        },\n    }\n    local tbcPoisons = {\n        [\"21835\"] = {\n            [\"2931\"] = 1,\n            [\"5173\"] = 1,\n            [\"8925\"] = 1,\n            name = \"Anesthetic Poison\",\n        },\n        [\"3775\"] = {\n            [\"2930\"] = 1,\n            [\"3371\"] = 1,\n            name = \"Crippling Poison\",\n        },\n        [\"3776\"] = {\n            [\"8923\"] = 1,\n            [\"8925\"] = 1,\n            name = \"Crippling Poison II\",\n        },\n        [\"2892\"] = {\n            [\"5173\"] = 1,\n            [\"3372\"] = 1,\n            name = \"Deadly Poison\",\n        },\n        [\"2893\"] = {\n            [\"5173\"] = 2,\n            [\"3372\"] = 1,\n            name = \"Deadly Poison II\",\n        },\n        [\"8984\"] = {\n            [\"5173\"] = 1,\n            [\"8925\"] = 1,\n            name = \"Deadly Poison III\",\n        },\n        [\"8985\"] = {\n            [\"5173\"] = 2,\n            [\"8925\"] = 1,\n            name = \"Deadly Poison IV\",\n        },\n        [\"20844\"] = {\n            [\"5173\"] = 2,\n            [\"8925\"] = 1,\n            name = \"Deadly Poison V\",\n        },\n        [\"22053\"] = {\n            [\"2931\"] = 1,\n            [\"8925\"] = 1,\n            name = \"Deadly Poison VI\",\n        },\n        [\"22054\"] = {\n            [\"2931\"] = 1,\n            [\"8925\"] = 1,\n            name = \"Deadly Poison VII\",\n        },\n        [\"6947\"] = {\n            [\"2928\"] = 1,\n            [\"3371\"] = 1,\n            name = \"Instant Poison\",\n        },\n        [\"6949\"] = {\n            [\"2928\"] = 1,\n            [\"3372\"] = 1,\n            name = \"Instant Poison II\",\n        },\n        [\"6950\"] = {\n            [\"8924\"] = 2,\n            [\"3372\"] = 1,\n            name = \"Instant Poison III\",\n        },\n        [\"8926\"] = {\n            [\"8924\"] = 1,\n            [\"8925\"] = 1,\n            name = \"Instant Poison IV\",\n        },\n        [\"8927\"] = {\n            [\"8924\"] = 2,\n            [\"8925\"] = 1,\n            name = \"Instant Poison V\",\n        },\n        [\"8928\"] = {\n            [\"8924\"] = 2,\n            [\"8925\"] = 1,\n            name = \"Instant Poison VI\",\n        },\n        [\"21927\"] = {\n            [\"2931\"] = 1,\n            [\"8925\"] = 1,\n            name = \"Instant Poison VII\",\n        },\n        [\"5237\"] = {\n            [\"2928\"] = 1,\n            [\"3371\"] = 1,\n            name = \"Mind-numbing Poison\",\n        },\n        [\"6951\"] = {\n            [\"8923\"] = 1,\n            [\"3372\"] = 1,\n            name = \"Mind-numbing Poison II\",\n        },\n        [\"9186\"] = {\n            [\"8923\"] = 1,\n            [\"8925\"] = 1,\n            name = \"Mind-numbing Poison III\",\n        },\n        [\"10918\"] = {\n            [\"2930\"] = 1,\n            [\"3372\"] = 1,\n            name = \"Wound Poison\",\n        },\n        [\"10920\"] = {\n            [\"2930\"] = 1,\n            [\"5173\"] = 1,\n            [\"3372\"] = 1,\n            name = \"Wound Poison II\",\n        },\n        [\"10921\"] = {\n            [\"8923\"] = 1,\n            [\"8925\"] = 1,\n            name = \"Wound Poison III\",\n        },\n        [\"10922\"] = {\n            [\"5173\"] = 1,\n            [\"8923\"] = 1,\n            [\"8925\"] = 1,\n            name = \"Wound Poison IV\",\n        },\n        [\"22055\"] = {\n            [\"8923\"] = 2,\n            [\"8925\"] = 1,\n            name = \"Wound Poison V\",\n        },\n    }\n    if version < 20000 then\n        aura_env.restock.poisons = vanillaPoisons\n    else\n        aura_env.restock.poisons = tbcPoisons\n        aura_env:Print(\"Using TBC poison reagent list\")\n    end\nend\nlocal className, classFilename, classId = UnitClass(\"player\")\naura_env.restock.className = className:lower()\n\n\nfunction aura_env.restock:BuildMerchantTable()\n    -- Clear the table before rebuilding\n    aura_env.restock.merchantItems = {}\n    local numItems = GetMerchantNumItems()\n    aura_env:DebugPrint(\"BuildMerchantTable: items=\" .. numItems)\n    for i = 1, numItems do\n        local itemLink = GetMerchantItemLink(i)\n        if not itemLink then\n            aura_env:DebugPrint(\"BuildMerchantTable: no itemLink at index \" .. i)\n        else\n            local linkParse = { strsplit(\":\", itemLink) }\n            local reagentID = linkParse[2]\n            if not reagentID then\n                aura_env:DebugPrint(\"BuildMerchantTable: failed to parse link \" .. itemLink)\n            else\n                local stackSize = select(8, C_Item.GetItemInfo(reagentID))\n                if not stackSize then\n                    aura_env:DebugPrint(\"BuildMerchantTable: missing item info for \" .. reagentID)\n                end\n                local price, quantity = select(3, GetMerchantItemInfo(i))\n                if not price or not quantity or quantity == 0 then\n                    aura_env:DebugPrint(\"BuildMerchantTable: invalid price/quantity for \" .. itemLink)\n                    price = 0\n                else\n                    price = price / quantity\n                end\n                aura_env.restock.merchantItems[reagentID] = {\n                    idx = i,\n                    itemLink = itemLink,\n                    stackSize = stackSize,\n                    price = price,\n                }\n            end\n        end\n    end\n    if next(aura_env.restock.merchantItems) then\n        WeakAuras.ScanEvents(\"MERCHANT_TABLE_BUILT\")\n    else\n        aura_env:DebugPrint(\"BuildMerchantTable: merchant table empty\")\n    end\nend\n\nfunction aura_env.restock:AddPoisonReagents(poisonID, quantity)\n    -- Check if there are any poisons left in inventory\n    local restock = quantity - C_Item.GetItemCount(poisonID)\n    aura_env:DebugPrint(\"AddPoisonReagents: poisonID=\" .. poisonID ..\n    \" desired=\" .. quantity .. \" restock=\" .. restock)\n    if restock <= 0 then return end\n    for reagentID, quant in pairs(aura_env.restock.poisons[poisonID]) do\n        if type(quant) == \"number\" then\n            if aura_env.restock.poisonReagents[reagentID] then\n                aura_env.restock.poisonReagents[reagentID] = aura_env.restock.poisonReagents[reagentID] + restock * quant\n            else\n                aura_env.restock.poisonReagents[reagentID] = restock * quant\n            end\n            aura_env:DebugPrint(\"AddPoisonReagents: reagentID=\" ..\n                reagentID .. \" add=\" .. (restock * quant) .. \" total=\" .. aura_env.restock.poisonReagents[reagentID])\n        end\n    end\nend\n\nfunction aura_env.restock:BuyPoisonReagents()\n    aura_env:DebugPrint(\"BuyPoisonReagents: start\")\n    for reagentID, quantity in pairs(aura_env.restock.poisonReagents) do\n        if aura_env.restock.merchantItems[reagentID] then\n            aura_env.restock:Restock(reagentID, quantity, true)\n        else\n            aura_env:DebugPrint(\"BuyPoisonReagents: missing merchant item for reagentID=\" .. reagentID)\n        end\n        -- Clear the table after restocking\n        aura_env.restock.poisonReagents = {}\n    end\n    aura_env:DebugPrint(\"BuyPoisonReagents: done\")\nend\n\nfunction aura_env.restock:Restock(reagentID, quantity, check)\n    local merchantItems = aura_env.restock.merchantItems\n    local check = check or false\n    local have = 0\n    local restock = quantity\n    local price = 0\n    aura_env:DebugPrint(\"reagentID=\" .. reagentID ..\n        \" quantity=\" .. quantity .. \" check=\" .. tostring(check))\n    if check then\n        if not merchantItems[reagentID] then\n            aura_env:DebugPrint(\"missing merchantItems for reagentID=\" .. reagentID)\n            return\n        end\n        have = C_Item.GetItemCount(merchantItems[reagentID].itemLink)\n        restock = quantity - have\n    end\n    local totalPurchase = restock\n    aura_env:DebugPrint(\"have=\" .. have .. \" restock=\" .. restock)\n    if restock <= 0 then return end\n    -- Need to buy in batches of max allowed stacks, e.g. 20\n    while restock >= merchantItems[reagentID].stackSize do\n        BuyMerchantItem(merchantItems[reagentID].idx,\n            merchantItems[reagentID].stackSize)\n        restock = restock - merchantItems[reagentID].stackSize\n        C_Timer.After(0.1, function() end)\n    end\n    if restock > 0 then\n        BuyMerchantItem(merchantItems[reagentID].idx, restock)\n    end\n    price = totalPurchase * merchantItems[reagentID].price\n    aura_env.restock.totalSpent = aura_env.restock.totalSpent + price\n    aura_env:Print(\"purchased \" ..\n        totalPurchase ..\n        \" \" ..\n        merchantItems[reagentID].itemLink ..\n        \" for: \" .. C_CurrencyInfo.GetCoinTextureString(price))\nend",
+        "customOnLoad": "",
+        "do_custom": true,
+        "do_custom_load": false
+      },
+      "start": {
+        "do_custom": false
+      }
+    },
+    "adjustedMax": "",
+    "adjustedMin": "",
+    "alpha": 0,
+    "anchorFrameType": "SCREEN",
+    "anchorPoint": "CENTER",
+    "animation": {
+      "finish": {
+        "duration_type": "seconds",
+        "easeStrength": 3,
+        "easeType": "none",
+        "type": "none"
+      },
+      "main": {
+        "duration_type": "seconds",
+        "easeStrength": 3,
+        "easeType": "none",
+        "type": "none"
+      },
+      "start": {
+        "duration_type": "seconds",
+        "easeStrength": 3,
+        "easeType": "none",
+        "type": "none"
+      }
+    },
+    "authorOptions": [
+      {
+        "collapse": true,
+        "groupType": "simple",
+        "hideReorder": true,
+        "key": "rogue",
+        "limitType": "none",
+        "name": "Rogue",
+        "nameSource": 0,
+        "noMerge": false,
+        "size": 10,
+        "subOptions": [
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "6947",
+            "max": 100,
+            "min": 0,
+            "name": "|T132273:24|t Instant Poison",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "6949",
+            "max": 100,
+            "min": 0,
+            "name": "|T132273:24|t Instant Poison II",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "6950",
+            "max": 100,
+            "min": 0,
+            "name": "|T132273:24|t Instant Poison III",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "8926",
+            "max": 100,
+            "min": 0,
+            "name": "|T132273:24|t Instant Poison IV",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "8927",
+            "max": 100,
+            "min": 0,
+            "name": "|T132273:24|t Instant Poison V",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "8928",
+            "max": 100,
+            "min": 0,
+            "name": "|T132273:24|t Instant Poison VI",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "21927",
+            "max": 100,
+            "min": 0,
+            "name": "|T132273:24|t Instant Poison VII",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "10918",
+            "max": 100,
+            "min": 0,
+            "name": "|T134197:24|t Wound Poison",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "10920",
+            "max": 100,
+            "min": 0,
+            "name": "|T134197:24|t Wound Poison II",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "10921",
+            "max": 100,
+            "min": 0,
+            "name": "|T134197:24|t Wound Poison III",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "10922",
+            "max": 100,
+            "min": 0,
+            "name": "|T134197:24|t Wound Poison IV",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "22055",
+            "max": 100,
+            "min": 0,
+            "name": "|T134197:24|t Wound Poison V",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "3775",
+            "max": 100,
+            "min": 0,
+            "name": "|T132274:24|t Crippling Poison",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "3776",
+            "max": 100,
+            "min": 0,
+            "name": "|T132274:24|t Crippling Poison II",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "5237",
+            "max": 100,
+            "min": 0,
+            "name": "|T136066:24|t Mind-numbing Poison",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "6951",
+            "max": 100,
+            "min": 0,
+            "name": "|T136066:24|t Mind-numbing Poison II",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "9186",
+            "max": 100,
+            "min": 0,
+            "name": "|T136066:24|t Mind-numbing Poison III",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "desc": "",
+            "key": "2892",
+            "max": 100,
+            "min": 0,
+            "name": "|T132290:24|t Deadly Poison",
+            "step": 1,
+            "type": "range",
+            "useDesc": false,
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "desc": "",
+            "key": "2893",
+            "max": 100,
+            "min": 0,
+            "name": "|T132290:24|t Deadly Poison II",
+            "step": 1,
+            "type": "range",
+            "useDesc": false,
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "desc": "",
+            "key": "8984",
+            "max": 100,
+            "min": 0,
+            "name": "|T132290:24|t Deadly Poison III",
+            "step": 1,
+            "type": "range",
+            "useDesc": false,
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "desc": "",
+            "key": "8985",
+            "max": 100,
+            "min": 0,
+            "name": "|T132290:24|t Deadly Poison IV",
+            "step": 1,
+            "type": "range",
+            "useDesc": false,
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "desc": "",
+            "key": "20844",
+            "max": 100,
+            "min": 0,
+            "name": "|T132290:24|t Deadly Poison V",
+            "step": 1,
+            "type": "range",
+            "useDesc": false,
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "desc": "",
+            "key": "22053",
+            "max": 100,
+            "min": 0,
+            "name": "|T132290:24|t Deadly Poison VI",
+            "step": 1,
+            "type": "range",
+            "useDesc": false,
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "desc": "",
+            "key": "22054",
+            "max": 100,
+            "min": 0,
+            "name": "|T132290:24|t Deadly Poison VII",
+            "step": 1,
+            "type": "range",
+            "useDesc": false,
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "5140",
+            "max": 100,
+            "min": 0,
+            "name": "|T134387:24|t Flash Powder",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          }
+        ],
+        "type": "group",
+        "useCollapse": true,
+        "useDesc": false,
+        "width": 1
+      },
+      {
+        "collapse": true,
+        "groupType": "simple",
+        "hideReorder": true,
+        "key": "paladin",
+        "limitType": "none",
+        "name": "Paladin",
+        "nameSource": 0,
+        "noMerge": false,
+        "size": 10,
+        "subOptions": [
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "21177",
+            "max": 500,
+            "min": 0,
+            "name": "|T134471:24|t Symbol of Kings",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "17033",
+            "max": 500,
+            "min": 0,
+            "name": "|T135259:24|t Symbol of Divinity",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          }
+        ],
+        "type": "group",
+        "useCollapse": true,
+        "useDesc": false,
+        "width": 1
+      },
+      {
+        "collapse": true,
+        "groupType": "simple",
+        "hideReorder": true,
+        "key": "priest",
+        "limitType": "none",
+        "name": "Priest",
+        "nameSource": 0,
+        "noMerge": false,
+        "size": 10,
+        "subOptions": [
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "17028",
+            "max": 500,
+            "min": 0,
+            "name": "|T133752:24|t Holy Candle",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "17029",
+            "max": 500,
+            "min": 0,
+            "name": "|T133751:24|t Sacred Candle",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          }
+        ],
+        "type": "group",
+        "useCollapse": true,
+        "useDesc": false,
+        "width": 1
+      },
+      {
+        "collapse": true,
+        "groupType": "simple",
+        "hideReorder": true,
+        "key": "druid",
+        "limitType": "none",
+        "name": "Druid",
+        "nameSource": 0,
+        "noMerge": false,
+        "size": 10,
+        "subOptions": [
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "17034",
+            "max": 500,
+            "min": 0,
+            "name": "|T133944:24|t Maple Seed",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "17035",
+            "max": 500,
+            "min": 0,
+            "name": "|T133944:24|t Stranglethorn Seed",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "17036",
+            "max": 500,
+            "min": 0,
+            "name": "|T133944:24|t Ashwood Seed",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "17037",
+            "max": 500,
+            "min": 0,
+            "name": "|T133944:24|t Hornbeam Seed",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "17038",
+            "max": 500,
+            "min": 0,
+            "name": "|T133944:24|t Ironwood Seed",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "22147",
+            "max": 500,
+            "min": 0,
+            "name": "|T133944:24|t Flintweed Seed",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "17021",
+            "max": 500,
+            "min": 0,
+            "name": "|T133749:24|t Wild Berries",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "17026",
+            "max": 500,
+            "min": 0,
+            "name": "|T134412:24|t Wild Thornroot",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "22148",
+            "max": 500,
+            "min": 0,
+            "name": "|T134412:24|t Wild Quillvine",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          }
+        ],
+        "type": "group",
+        "useCollapse": true,
+        "useDesc": false,
+        "width": 1
+      },
+      {
+        "collapse": true,
+        "groupType": "simple",
+        "hideReorder": true,
+        "key": "warlock",
+        "limitType": "none",
+        "name": "Warlock",
+        "nameSource": 0,
+        "noMerge": false,
+        "size": 10,
+        "subOptions": [
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "5565",
+            "max": 500,
+            "min": 0,
+            "name": "|T135231:24|t Infernal Stone",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "16583",
+            "max": 500,
+            "min": 0,
+            "name": "|T134337:24|t Demonic Figurine",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          }
+        ],
+        "type": "group",
+        "useCollapse": true,
+        "useDesc": false,
+        "width": 1
+      },
+      {
+        "collapse": true,
+        "groupType": "simple",
+        "hideReorder": true,
+        "key": "mage",
+        "limitType": "none",
+        "name": "Mage",
+        "nameSource": 0,
+        "noMerge": false,
+        "size": 10,
+        "subOptions": [
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "17031",
+            "max": 500,
+            "min": 0,
+            "name": "|T134419:24|t Rune of Teleportation",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "17032",
+            "max": 500,
+            "min": 0,
+            "name": "|T134421:24|t Rune of Portals",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "17020",
+            "max": 500,
+            "min": 0,
+            "name": "|T133848:24|t Arcane Powder",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "211779",
+            "max": 500,
+            "min": 0,
+            "name": "|T135933:24|t Comprehension Charm",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          }
+        ],
+        "type": "group",
+        "useCollapse": true,
+        "useDesc": false,
+        "width": 1
+      },
+      {
+        "collapse": true,
+        "groupType": "simple",
+        "hideReorder": true,
+        "key": "shaman",
+        "limitType": "none",
+        "name": "Shaman",
+        "nameSource": 0,
+        "noMerge": false,
+        "size": 10,
+        "subOptions": [
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "17030",
+            "max": 500,
+            "min": 0,
+            "name": "|T133439:24|t Ankh",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          }
+        ],
+        "type": "group",
+        "useCollapse": true,
+        "useDesc": false,
+        "width": 1
+      },
+      {
+        "text": "",
+        "type": "header",
+        "useName": false,
+        "width": 1
+      },
+      {
+        "collapse": true,
+        "groupType": "simple",
+        "hideReorder": true,
+        "key": "ammo",
+        "limitType": "none",
+        "name": "Ammo",
+        "nameSource": 0,
+        "noMerge": false,
+        "size": 10,
+        "subOptions": [
+          {
+            "text": "Vanilla",
+            "type": "header",
+            "useName": true,
+            "width": 1
+          },
+          {
+            "bigStep": 200,
+            "default": 0,
+            "key": "2516",
+            "max": 5000,
+            "min": 0,
+            "name": "|T132384:24|t Light Shot",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 200,
+            "default": 0,
+            "key": "2512",
+            "max": 5000,
+            "min": 0,
+            "name": "|T132382:24|t Rough Arrow",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 200,
+            "default": 0,
+            "key": "2519",
+            "max": 5000,
+            "min": 0,
+            "name": "|T132384:24|t Heavy Shot",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 200,
+            "default": 0,
+            "key": "2515",
+            "max": 5000,
+            "min": 0,
+            "name": "|T132382:24|t Sharp Arrow",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 200,
+            "default": 0,
+            "key": "3033",
+            "max": 5000,
+            "min": 0,
+            "name": "|T132384:24|t Solid Shot",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 200,
+            "default": 0,
+            "key": "3030",
+            "max": 5000,
+            "min": 0,
+            "name": "|T132382:24|t Razor Arrow",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 200,
+            "default": 0,
+            "key": "11284",
+            "max": 5000,
+            "min": 0,
+            "name": "|T132383:24|t Accurate Slugs",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 200,
+            "default": 0,
+            "key": "11285",
+            "max": 5000,
+            "min": 0,
+            "name": "|T135661:24|t Jagged Arrow",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 200,
+            "default": 0,
+            "key": "19317",
+            "max": 5000,
+            "min": 0,
+            "name": "|T135844:24|t Ice Threaded Bullet",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 200,
+            "default": 0,
+            "key": "19316",
+            "max": 5000,
+            "min": 0,
+            "name": "|T135855:24|t Ice Threaded Arrow",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "text": "TBC",
+            "type": "header",
+            "useName": true,
+            "width": 1
+          },
+          {
+            "bigStep": 200,
+            "default": 0,
+            "key": "28053",
+            "max": 5000,
+            "min": 0,
+            "name": "|T133578:24|t Wicked Arrow",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 200,
+            "default": 0,
+            "key": "28060",
+            "max": 5000,
+            "min": 0,
+            "name": "|T133582:24|t Impact Shot",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 200,
+            "default": 0,
+            "key": "24417",
+            "max": 5000,
+            "min": 0,
+            "name": "|T133580:24|t Scout's Arrow",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 200,
+            "default": 0,
+            "key": "30611",
+            "max": 5000,
+            "min": 0,
+            "name": "|T133578:24|t Halaani Razorshaft",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 200,
+            "default": 0,
+            "key": "30612",
+            "max": 5000,
+            "min": 0,
+            "name": "|T133584:24|t Halaani Grimshot",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 200,
+            "default": 0,
+            "key": "31949",
+            "max": 5000,
+            "min": 0,
+            "name": "|T133577:24|t Warden's Arrow",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 200,
+            "default": 0,
+            "key": "32882",
+            "max": 5000,
+            "min": 0,
+            "name": "|T133582:24|t Hellfire Shot",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 200,
+            "default": 0,
+            "key": "32883",
+            "max": 5000,
+            "min": 0,
+            "name": "|T133582:24|t Felbane Slugs",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 200,
+            "default": 0,
+            "key": "28056",
+            "max": 5000,
+            "min": 0,
+            "name": "|T133576:24|t Blackflight Arrow",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 200,
+            "default": 0,
+            "key": "28061",
+            "max": 5000,
+            "min": 0,
+            "name": "|T133586:24|t Ironbite Shell",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 200,
+            "default": 0,
+            "key": "34581",
+            "max": 5000,
+            "min": 0,
+            "name": "|T133577:24|t Mysterious Arrow",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 200,
+            "default": 0,
+            "key": "34582",
+            "max": 5000,
+            "min": 0,
+            "name": "|T133582:24|t Mysterious Shell",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 200,
+            "default": 0,
+            "key": "31737",
+            "max": 5000,
+            "min": 0,
+            "name": "|T133579:24|t Timeless Arrow",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 200,
+            "default": 0,
+            "key": "31735",
+            "max": 5000,
+            "min": 0,
+            "name": "|T133582:24|t Timeless Shell",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          }
+        ],
+        "type": "group",
+        "useCollapse": true,
+        "useDesc": false,
+        "width": 1
+      },
+      {
+        "collapse": true,
+        "groupType": "simple",
+        "hideReorder": true,
+        "key": "misc",
+        "limitType": "none",
+        "name": "Misc",
+        "nameSource": 0,
+        "noMerge": false,
+        "size": 10,
+        "subOptions": [
+          {
+            "bigStep": 10,
+            "default": 0,
+            "key": "184937",
+            "max": 100,
+            "min": 0,
+            "name": "|T133879:24|t Chronoboon Displacer",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 10,
+            "default": 0,
+            "key": "8529",
+            "max": 100,
+            "min": 0,
+            "name": "|T134863:24|t Noggenfogger Elixir",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "19301",
+            "max": 100,
+            "min": 0,
+            "name": "|T133989:24|t Alterac Manna Biscuit",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 20,
+            "default": 0,
+            "key": "13810",
+            "max": 100,
+            "min": 0,
+            "name": "|T133997:24|t Blessed Sunfruit",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 1,
+            "default": 0,
+            "key": "18839",
+            "max": 5,
+            "min": 0,
+            "name": "|T134819:24|t Combat Healing Potion",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          },
+          {
+            "bigStep": 1,
+            "default": 0,
+            "key": "18841",
+            "max": 5,
+            "min": 0,
+            "name": "|T134861:24|t Combat Mana Potion",
+            "step": 1,
+            "type": "range",
+            "width": 1
+          }
+        ],
+        "type": "group",
+        "useCollapse": true,
+        "useDesc": false,
+        "width": 1
+      }
+    ],
+    "color": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "conditions": [],
+    "config": {
+      "ammo": {
+        "2512": 0,
+        "2515": 0,
+        "2516": 0,
+        "2519": 0,
+        "3030": 0,
+        "3033": 0,
+        "11284": 0,
+        "11285": 0,
+        "19316": 0,
+        "19317": 0,
+        "24417": 0,
+        "28053": 0,
+        "28056": 0,
+        "28060": 0,
+        "28061": 0,
+        "30611": 0,
+        "30612": 0,
+        "31735": 0,
+        "31737": 0,
+        "31949": 0,
+        "32882": 0,
+        "32883": 0,
+        "34581": 0,
+        "34582": 0
+      },
+      "druid": {
+        "17021": 0,
+        "17026": 0,
+        "17034": 0,
+        "17035": 0,
+        "17036": 0,
+        "17037": 0,
+        "17038": 0,
+        "22147": 0,
+        "22148": 0
+      },
+      "mage": {
+        "17020": 0,
+        "17031": 0,
+        "17032": 0,
+        "211779": 0
+      },
+      "misc": {
+        "8529": 0,
+        "13810": 0,
+        "18839": 0,
+        "18841": 0,
+        "19301": 0,
+        "184937": 0
+      },
+      "paladin": {
+        "17033": 0,
+        "21177": 0
+      },
+      "priest": {
+        "17028": 0,
+        "17029": 0
+      },
+      "rogue": {
+        "2892": 0,
+        "2893": 0,
+        "3775": 0,
+        "3776": 0,
+        "5140": 0,
+        "5237": 0,
+        "6947": 0,
+        "6949": 0,
+        "6950": 0,
+        "6951": 0,
+        "8926": 0,
+        "8927": 0,
+        "8928": 0,
+        "8984": 0,
+        "8985": 0,
+        "9186": 0,
+        "10918": 0,
+        "10920": 0,
+        "10921": 0,
+        "10922": 0,
+        "20844": 0,
+        "21927": 0,
+        "22053": 0,
+        "22054": 0,
+        "22055": 0
+      },
+      "shaman": {
+        "17030": 0
+      },
+      "warlock": {
+        "5565": 0,
+        "16583": 0
+      }
+    },
+    "cooldown": true,
+    "cooldownEdge": false,
+    "cooldownSwipe": true,
+    "cooldownTextDisabled": false,
+    "desaturate": false,
+    "displayIcon": 132792,
+    "frameStrata": 1,
+    "height": 32,
+    "icon": true,
+    "iconSource": -1,
+    "id": "Restock",
+    "information": [],
+    "internalVersion": 88,
+    "inverse": false,
+    "keepAspectRatio": false,
+    "load": {
+      "class": {
+        "multi": {
+          "DRUID": true,
+          "HUNTER": true,
+          "MAGE": true,
+          "PALADIN": true,
+          "PRIEST": true,
+          "ROGUE": true,
+          "SHAMAN": true,
+          "WARLOCK": true,
+          "WARRIOR": true
+        },
+        "single": "ROGUE"
+      },
+      "size": {
+        "multi": []
+      },
+      "spec": {
+        "multi": []
+      },
+      "talent": {
+        "multi": []
+      },
+      "use_never": false
+    },
+    "progressSource": [
+      -1,
+      ""
+    ],
+    "regionType": "icon",
+    "selfPoint": "CENTER",
+    "semver": "1.0.19",
+    "subRegions": [
+      {
+        "type": "subbackground"
+      },
+      {
+        "anchorXOffset": 0,
+        "anchorYOffset": 0,
+        "anchor_point": "INNER_BOTTOMRIGHT",
+        "rotateText": "NONE",
+        "text_automaticWidth": "Auto",
+        "text_color": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "text_fixedWidth": 64,
+        "text_font": "Friz Quadrata TT",
+        "text_fontSize": 12,
+        "text_fontType": "OUTLINE",
+        "text_justify": "CENTER",
+        "text_selfPoint": "AUTO",
+        "text_shadowColor": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "text_shadowXOffset": 0,
+        "text_shadowYOffset": 0,
+        "text_text": "%s",
+        "text_text_format_s_format": "none",
+        "text_visible": true,
+        "text_wordWrap": "WordWrap",
+        "type": "subtext"
+      },
+      {
+        "glow": false,
+        "glowBorder": false,
+        "glowColor": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "glowDuration": 1,
+        "glowFrequency": 0.25,
+        "glowLength": 10,
+        "glowLines": 8,
+        "glowScale": 1,
+        "glowThickness": 1,
+        "glowType": "buttonOverlay",
+        "glowXOffset": 0,
+        "glowYOffset": 0,
+        "type": "subglow",
+        "useGlowColor": false
+      }
+    ],
+    "tocversion": 20505,
+    "triggers": {
+      "1": {
+        "trigger": {
+          "count": "5",
+          "count_operator": "<",
+          "custom": "function (event)\n    if event == \"MERCHANT_SHOW\" then\n        aura_env.restock:BuildMerchantTable()\n    elseif event == \"MERCHANT_TABLE_BUILT\" then\n        for category, items in pairs(aura_env.config) do\n            if category == aura_env.restock.className or category == \"ammo\" or category == \"misc\" then\n                for itemID, quantity in pairs(items) do\n                    if quantity > 0 and aura_env.restock.merchantItems[itemID] then\n                        aura_env.restock:Restock(itemID, quantity, true)\n                    end\n                    if quantity > 0 and aura_env.restock.poisons[itemID] then\n                        aura_env.restock:AddPoisonReagents(itemID, quantity)\n                    end\n                end\n                if aura_env.restock.poisonReagents then\n                    aura_env.restock:BuyPoisonReagents()\n                end\n            end\n        end\n        if aura_env.restock.totalSpent > 0 then\n            aura_env:Print(\"spent total: \" .. C_CurrencyInfo.GetCoinTextureString(aura_env.restock.totalSpent))\n            aura_env.restock.totalSpent = 0\n        end\n    end\nend",
+          "custom_hide": "custom",
+          "custom_type": "event",
+          "debuffType": "HELPFUL",
+          "event": "Item Count",
+          "events": "MERCHANT_SHOW,MERCHANT_TABLE_BUILT",
+          "genericShowOn": "showOnCooldown",
+          "itemName": 5140,
+          "names": [],
+          "spellIds": [],
+          "subeventPrefix": "SPELL",
+          "subeventSuffix": "_CAST_START",
+          "type": "custom",
+          "unit": "player",
+          "use_count": true,
+          "use_genericShowOn": true,
+          "use_itemName": true
+        },
+        "untrigger": {
+          "custom": "function(event)\n    if event == \"MERCHANT_CLOSED\" then\n        return true\n    end    \nend"
+        }
+      },
+      "activeTriggerMode": -10,
+      "disjunctive": "any"
+    },
+    "uid": "0)Zd4WphBD8",
+    "url": "https://wago.io/tHNpUaq3B/20",
+    "useAdjustededMax": false,
+    "useAdjustededMin": false,
+    "useCooldownModRate": true,
+    "version": 20,
+    "wagoID": "tHNpUaq3B",
+    "width": 32,
+    "xOffset": 242.57025146484,
+    "yOffset": -367.40763473511,
+    "zoom": 0
+  },
+  "m": "d",
+  "s": "5.21.1",
+  "v": 1421,
+  "wagoID": "tHNpUaq3B"
+}
