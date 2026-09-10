@@ -3,20 +3,14 @@
 ---@field CropEnjoyerTickerStore table
 local Global = _G
 
--- GetShapeshiftFormID() form IDs for the Druid travel-type forms - a Druid
--- shifting into one of these isn't IsMounted(), but should be treated the
--- same for gear-swap purposes. IDs confirmed against warcraft.wiki.gg's
--- API_GetShapeshiftFormID (present since patch 2.0.1 / BC Anniversary).
-local DRUID_TRAVEL_FORM_IDS = {
-    [3] = true,  -- Travel Form
-    [4] = true,  -- Aquatic Form
-    [29] = true, -- Flight Form
-    [27] = true, -- Swift Flight Form
+local DRUID_FLIGHT_FORM_IDS = {
+    [29] = true,
+    [27] = true,
 }
 
-local function IsInDruidTravelForm()
+local function IsInDruidFlightForm()
     local formID = GetShapeshiftFormID()
-    return formID ~= nil and DRUID_TRAVEL_FORM_IDS[formID] or false
+    return formID ~= nil and DRUID_FLIGHT_FORM_IDS[formID] or false
 end
 
 local function InitState()
@@ -35,7 +29,7 @@ local function InitState()
     aura_env.trinkets.fallbackNotFound = false
     aura_env.region:SetDesaturated(not aura_env.enabled)
     aura_env.snapshot = { active = false }
-    aura_env.wasMounted = IsMounted() or IsInDruidTravelForm()
+    aura_env.wasMounted = IsMounted() or IsInDruidFlightForm()
 end
 
 function aura_env:InitState()
@@ -81,7 +75,7 @@ end
 -- trigger-conditions.lua's own custom trigger functions - a separate Lua
 -- chunk that only shares state via aura_env - can use the same check.
 function aura_env.trinkets:IsEffectivelyMounted()
-    return IsMounted() or IsInDruidTravelForm()
+    return IsMounted() or IsInDruidFlightForm()
 end
 
 function aura_env.trinkets:IsCropItem(item)
@@ -96,10 +90,13 @@ local function HasItemInBags(itemId)
 end
 
 function aura_env.trinkets:GetDesiredCropItem()
+    if IsMounted() then
+        return aura_env.trinkets.crop
+    end
     if HasItemInBags(aura_env.trinkets.charm) then
         return aura_env.trinkets.charm
     end
-    return aura_env.trinkets.crop
+    return nil
 end
 
 local function ShouldProtectSlot(slotId, item)
@@ -260,12 +257,15 @@ end
 
 local function EnforceGear()
     if InCombatLockdown() then return end
-    local mounted = IsMounted() or IsInDruidTravelForm()
-    if mounted then
+    local active = IsMounted() or IsInDruidFlightForm()
+    if active then
         if not aura_env.wasMounted then
             Snapshot()
         end
-        aura_env.trinkets:TryEquip(aura_env.trinkets:GetDesiredCropItem(), aura_env.trinkets.slotId)
+        local desired = aura_env.trinkets:GetDesiredCropItem()
+        if desired then
+            aura_env.trinkets:TryEquip(desired, aura_env.trinkets.slotId)
+        end
     elseif aura_env.snapshot.active then
         EnforceSnapshotSlot(aura_env.trinkets.slotId,
             aura_env.trinkets.equipped[aura_env.config.trinket_slot],
@@ -277,7 +277,7 @@ local function EnforceGear()
             aura_env.snapshot.active = false
         end
     end
-    aura_env.wasMounted = mounted
+    aura_env.wasMounted = active
 end
 
 function aura_env.trinkets:IsCropEquipped()
