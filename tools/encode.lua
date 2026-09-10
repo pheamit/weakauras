@@ -1,7 +1,12 @@
 -- Reverse of decode.lua: turns an edited *_table_data.json back into a
 -- pasteable WeakAuras import string ("!WA:2!...").
 --
--- Run from inside this directory: luajit encode.lua <in.json> <out>
+-- Run from inside this directory: luajit encode.lua <in.json> [out]
+-- If [out] is omitted, writes to import.txt next to <in.json> - e.g.
+-- encoding ../crop-enjoyer/crop-enjoyer_table_data.json writes
+-- ../crop-enjoyer/import.txt, so the import string always lands as a real,
+-- durable file right next to the source it came from, not just printed to
+-- the terminal or left in a temp path.
 
 dofile("LibStub.lua")
 dofile("LibDeflate.lua")
@@ -11,8 +16,9 @@ dofile("LibSerialize.lua")
 local LibDeflate = LibStub:GetLibrary("LibDeflate")
 local LibSerialize = LibStub:GetLibrary("LibSerialize")
 
-local inPath, outPath = arg[1], arg[2]
-assert(inPath and outPath, "usage: encode.lua <in.json> <out>")
+local inPath = arg[1]
+assert(inPath, "usage: encode.lua <in.json> [out]")
+local outPath = arg[2] or (inPath:match("^(.*/)") or "./") .. "import.txt"
 
 -- Minimal recursive-descent JSON parser, the inverse of decode.lua's
 -- encoder. Object keys that look like plain positive integers ("1", "2",
