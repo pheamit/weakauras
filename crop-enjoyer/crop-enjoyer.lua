@@ -3,6 +3,22 @@
 ---@field CropEnjoyerTickerStore table
 local Global = _G
 
+-- GetShapeshiftFormID() form IDs for the Druid travel-type forms - a Druid
+-- shifting into one of these isn't IsMounted(), but should be treated the
+-- same for gear-swap purposes. IDs confirmed against warcraft.wiki.gg's
+-- API_GetShapeshiftFormID (present since patch 2.0.1 / BC Anniversary).
+local DRUID_TRAVEL_FORM_IDS = {
+    [3] = true,  -- Travel Form
+    [4] = true,  -- Aquatic Form
+    [29] = true, -- Flight Form
+    [27] = true, -- Swift Flight Form
+}
+
+local function IsInDruidTravelForm()
+    local formID = GetShapeshiftFormID()
+    return formID ~= nil and DRUID_TRAVEL_FORM_IDS[formID] or false
+end
+
 local function InitState()
     if aura_env.trinkets then return end
     Global.CropEnjoyer = Global.CropEnjoyer or {}
@@ -19,7 +35,7 @@ local function InitState()
     aura_env.trinkets.fallbackNotFound = false
     aura_env.region:SetDesaturated(not aura_env.enabled)
     aura_env.snapshot = { active = false }
-    aura_env.wasMounted = IsMounted()
+    aura_env.wasMounted = IsMounted() or IsInDruidTravelForm()
 end
 
 function aura_env:InitState()
@@ -59,6 +75,13 @@ local function MarkMissingItem(item)
     Print(("%s not found in bags"):format(item))
     Global.CropEnjoyer.notFound[item] = true
     return true
+end
+
+-- Exposed on aura_env.trinkets (rather than left as the bare local above) so
+-- trigger-conditions.lua's own custom trigger functions - a separate Lua
+-- chunk that only shares state via aura_env - can use the same check.
+function aura_env.trinkets:IsEffectivelyMounted()
+    return IsMounted() or IsInDruidTravelForm()
 end
 
 function aura_env.trinkets:IsCropItem(item)
@@ -237,7 +260,7 @@ end
 
 local function EnforceGear()
     if InCombatLockdown() then return end
-    local mounted = IsMounted()
+    local mounted = IsMounted() or IsInDruidTravelForm()
     if mounted then
         if not aura_env.wasMounted then
             Snapshot()
