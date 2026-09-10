@@ -1,6 +1,6 @@
 ---@diagnostic disable:unreachable-code
 -- Trigger 1
--- PLAYER_MOUNT_DISPLAY_CHANGED
+-- PLAYER_MOUNT_DISPLAY_CHANGED,UPDATE_SHAPESHIFT_FORM
 ---@diagnostic disable-next-line:miss-name
 function()
     if not aura_env.trinkets then
@@ -12,7 +12,7 @@ function()
         end
     end
 
-    local mounted = IsMounted()
+    local mounted = aura_env.trinkets:IsEffectivelyMounted()
     if UnitOnTaxi("player") then
         return mounted
     end

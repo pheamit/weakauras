@@ -3,6 +3,16 @@
 ---@field CropEnjoyerTickerStore table
 local Global = _G
 
+local DRUID_FLIGHT_FORM_IDS = {
+    [29] = true,
+    [27] = true,
+}
+
+local function IsInDruidFlightForm()
+    local formID = GetShapeshiftFormID()
+    return formID ~= nil and DRUID_FLIGHT_FORM_IDS[formID] or false
+end
+
 local function InitState()
     if aura_env.trinkets then return end
     Global.CropEnjoyer = Global.CropEnjoyer or {}
@@ -19,7 +29,7 @@ local function InitState()
     aura_env.trinkets.fallbackNotFound = false
     aura_env.region:SetDesaturated(not aura_env.enabled)
     aura_env.snapshot = { active = false }
-    aura_env.wasMounted = IsMounted()
+    aura_env.wasMounted = IsMounted() or IsInDruidFlightForm()
 end
 
 function aura_env:InitState()
@@ -61,6 +71,13 @@ local function MarkMissingItem(item)
     return true
 end
 
+-- Exposed on aura_env.trinkets (rather than left as the bare local above) so
+-- trigger-conditions.lua's own custom trigger functions - a separate Lua
+-- chunk that only shares state via aura_env - can use the same check.
+function aura_env.trinkets:IsEffectivelyMounted()
+    return IsMounted() or IsInDruidFlightForm()
+end
+
 function aura_env.trinkets:IsCropItem(item)
     if item == aura_env.trinkets.crop or item == aura_env.trinkets.charm then return true end
     if type(item) ~= "string" then return false end
@@ -73,10 +90,13 @@ local function HasItemInBags(itemId)
 end
 
 function aura_env.trinkets:GetDesiredCropItem()
+    if IsMounted() then
+        return aura_env.trinkets.crop
+    end
     if HasItemInBags(aura_env.trinkets.charm) then
         return aura_env.trinkets.charm
     end
-    return aura_env.trinkets.crop
+    return nil
 end
 
 local function ShouldProtectSlot(slotId, item)
@@ -237,12 +257,15 @@ end
 
 local function EnforceGear()
     if InCombatLockdown() then return end
-    local mounted = IsMounted()
-    if mounted then
+    local active = IsMounted() or IsInDruidFlightForm()
+    if active then
         if not aura_env.wasMounted then
             Snapshot()
         end
-        aura_env.trinkets:TryEquip(aura_env.trinkets:GetDesiredCropItem(), aura_env.trinkets.slotId)
+        local desired = aura_env.trinkets:GetDesiredCropItem()
+        if desired then
+            aura_env.trinkets:TryEquip(desired, aura_env.trinkets.slotId)
+        end
     elseif aura_env.snapshot.active then
         EnforceSnapshotSlot(aura_env.trinkets.slotId,
             aura_env.trinkets.equipped[aura_env.config.trinket_slot],
@@ -254,7 +277,7 @@ local function EnforceGear()
             aura_env.snapshot.active = false
         end
     end
-    aura_env.wasMounted = mounted
+    aura_env.wasMounted = active
 end
 
 function aura_env.trinkets:IsCropEquipped()
