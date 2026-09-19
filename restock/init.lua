@@ -354,24 +354,36 @@ function aura_env.restock:Restock(reagentID, quantity, check)
     local totalPurchase = restock
     aura_env:DebugPrint("have=" .. have .. " restock=" .. restock)
     if restock <= 0 then return end
-    if not merchantItems[reagentID].stackSize then
-        aura_env:DebugPrint("missing stackSize for reagentID=" .. reagentID)
-        return
+
+    local function performPurchase()
+        local stackSize = merchantItems[reagentID].stackSize
+        while restock >= stackSize do
+            BuyMerchantItem(merchantItems[reagentID].idx, stackSize)
+            restock = restock - stackSize
+        end
+        if restock > 0 then
+            BuyMerchantItem(merchantItems[reagentID].idx, restock)
+        end
+        price = totalPurchase * merchantItems[reagentID].price
+        aura_env.restock.totalSpent = aura_env.restock.totalSpent + price
+        aura_env:Print("purchased " ..
+            totalPurchase ..
+            " " ..
+            merchantItems[reagentID].itemLink ..
+            " for: " .. C_CurrencyInfo.GetCoinTextureString(price))
     end
-    -- Need to buy in batches of max allowed stacks, e.g. 20
-    while restock >= merchantItems[reagentID].stackSize do
-        BuyMerchantItem(merchantItems[reagentID].idx,
-            merchantItems[reagentID].stackSize)
-        restock = restock - merchantItems[reagentID].stackSize
+
+    if merchantItems[reagentID].stackSize then
+        performPurchase()
+    else
+        aura_env:Print("waiting on item data for " .. merchantItems[reagentID].itemLink .. ", buying once it's loaded")
+        Item:CreateFromItemID(tonumber(reagentID)):ContinueOnItemLoad(function()
+            merchantItems[reagentID].stackSize = select(8, C_Item.GetItemInfo(reagentID))
+            if not merchantItems[reagentID].stackSize then
+                aura_env:DebugPrint("stackSize still missing for reagentID=" .. reagentID .. " after item load")
+                return
+            end
+            performPurchase()
+        end)
     end
-    if restock > 0 then
-        BuyMerchantItem(merchantItems[reagentID].idx, restock)
-    end
-    price = totalPurchase * merchantItems[reagentID].price
-    aura_env.restock.totalSpent = aura_env.restock.totalSpent + price
-    aura_env:Print("purchased " ..
-        totalPurchase ..
-        " " ..
-        merchantItems[reagentID].itemLink ..
-        " for: " .. C_CurrencyInfo.GetCoinTextureString(price))
 end
