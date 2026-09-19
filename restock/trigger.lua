@@ -12,7 +12,7 @@ function (event)
                         aura_env.restock:AddPoisonReagents(itemID, quantity)
                     end
                 end
-                if aura_env.restock.poisonReagents then
+                if next(aura_env.restock.poisonReagents) then
                     aura_env.restock:BuyPoisonReagents()
                 end
             end
