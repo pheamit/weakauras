@@ -1,4 +1,4 @@
-aura_env.color = "FF85e5cc"
+aura_env.color = "FFFFBBBB"
 aura_env.colorName = (">\124c%s%s\124r<"):format(aura_env.color, "Restock")
 
 function aura_env:DebugPrint(message)
