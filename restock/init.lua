@@ -1,47 +1,21 @@
--- Trigger 1
----@diagnostic disable-next-line:miss-name
-function (event)
-    if event == "MERCHANT_SHOW" then
-        aura_env.restock:BuildMerchantTable()
-    elseif event == "MERCHANT_TABLE_BUILT" then
-        for category, items in pairs(aura_env.config) do
-            if category == aura_env.restock.className or category == "ammo" or category == "misc" then
-                for itemID, quantity in pairs(items) do
-                    if quantity > 0 and aura_env.restock.merchantItems[itemID] then
-                        aura_env.restock:Restock(itemID, quantity, true)
-                    end
-                    if quantity > 0 and aura_env.restock.poisons[itemID] then
-                        aura_env.restock:AddPoisonReagents(itemID, quantity)
-                    end
-                end
-                if aura_env.restock.poisonReagents then
-                    aura_env.restock:BuyPoisonReagents()
-                end
-            end
-        end
-        if aura_env.restock.totalSpent > 0 then
-            aura_env:Print("spent total: " .. C_CurrencyInfo.GetCoinTextureString(aura_env.restock.totalSpent))
-            aura_env.restock.totalSpent = 0
-        end
-    end
+function aura_env:DebugPrint(message)
+    if not aura_env.restock.debug then return end
+    print(">\124cFF85e5ccRestock\124r< [DEBUG] " .. message)
 end
 
--- Untrigger 1
----@diagnostic disable-next-line: miss-name
-function(event)
-    if event == "MERCHANT_CLOSED" then
-        return true
-    end    
+function aura_env:Print(message)
+    print(">\124cFF85e5ccRestock\124r< " .. message)
 end
 
--- On Init section
+local version = select(4, GetBuildInfo())
 if not aura_env.restock then
     aura_env.restock = {}
     aura_env.restock.debug = false
     aura_env.restock.totalSpent = 0
     aura_env.restock.merchantItems = {}
     aura_env.restock.poisonReagents = {}
-    aura_env.restock.poisons = {
+    aura_env.restock.poisons = {}
+    local vanillaPoisons = {
         ["3775"] = {
             ["2930"] = 1,
             ["3371"] = 1,
@@ -146,18 +120,146 @@ if not aura_env.restock then
             name = "Wound Poison IV",
         },
     }
+    local tbcPoisons = {
+        ["21835"] = {
+            ["2931"] = 1,
+            ["5173"] = 1,
+            ["8925"] = 1,
+            name = "Anesthetic Poison",
+        },
+        ["3775"] = {
+            ["2930"] = 1,
+            ["3371"] = 1,
+            name = "Crippling Poison",
+        },
+        ["3776"] = {
+            ["8923"] = 1,
+            ["8925"] = 1,
+            name = "Crippling Poison II",
+        },
+        ["2892"] = {
+            ["5173"] = 1,
+            ["3372"] = 1,
+            name = "Deadly Poison",
+        },
+        ["2893"] = {
+            ["5173"] = 2,
+            ["3372"] = 1,
+            name = "Deadly Poison II",
+        },
+        ["8984"] = {
+            ["5173"] = 1,
+            ["8925"] = 1,
+            name = "Deadly Poison III",
+        },
+        ["8985"] = {
+            ["5173"] = 2,
+            ["8925"] = 1,
+            name = "Deadly Poison IV",
+        },
+        ["20844"] = {
+            ["5173"] = 2,
+            ["8925"] = 1,
+            name = "Deadly Poison V",
+        },
+        ["22053"] = {
+            ["2931"] = 1,
+            ["8925"] = 1,
+            name = "Deadly Poison VI",
+        },
+        ["22054"] = {
+            ["2931"] = 1,
+            ["8925"] = 1,
+            name = "Deadly Poison VII",
+        },
+        ["6947"] = {
+            ["2928"] = 1,
+            ["3371"] = 1,
+            name = "Instant Poison",
+        },
+        ["6949"] = {
+            ["2928"] = 1,
+            ["3372"] = 1,
+            name = "Instant Poison II",
+        },
+        ["6950"] = {
+            ["8924"] = 2,
+            ["3372"] = 1,
+            name = "Instant Poison III",
+        },
+        ["8926"] = {
+            ["8924"] = 1,
+            ["8925"] = 1,
+            name = "Instant Poison IV",
+        },
+        ["8927"] = {
+            ["8924"] = 2,
+            ["8925"] = 1,
+            name = "Instant Poison V",
+        },
+        ["8928"] = {
+            ["8924"] = 2,
+            ["8925"] = 1,
+            name = "Instant Poison VI",
+        },
+        ["21927"] = {
+            ["2931"] = 1,
+            ["8925"] = 1,
+            name = "Instant Poison VII",
+        },
+        ["5237"] = {
+            ["2928"] = 1,
+            ["3371"] = 1,
+            name = "Mind-numbing Poison",
+        },
+        ["6951"] = {
+            ["8923"] = 1,
+            ["3372"] = 1,
+            name = "Mind-numbing Poison II",
+        },
+        ["9186"] = {
+            ["8923"] = 1,
+            ["8925"] = 1,
+            name = "Mind-numbing Poison III",
+        },
+        ["10918"] = {
+            ["2930"] = 1,
+            ["3372"] = 1,
+            name = "Wound Poison",
+        },
+        ["10920"] = {
+            ["2930"] = 1,
+            ["5173"] = 1,
+            ["3372"] = 1,
+            name = "Wound Poison II",
+        },
+        ["10921"] = {
+            ["8923"] = 1,
+            ["8925"] = 1,
+            name = "Wound Poison III",
+        },
+        ["10922"] = {
+            ["5173"] = 1,
+            ["8923"] = 1,
+            ["8925"] = 1,
+            name = "Wound Poison IV",
+        },
+        ["22055"] = {
+            ["8923"] = 2,
+            ["8925"] = 1,
+            name = "Wound Poison V",
+        },
+    }
+    if version < 20000 then
+        aura_env.restock.poisons = vanillaPoisons
+    else
+        aura_env.restock.poisons = tbcPoisons
+        aura_env:Print("Using TBC poison reagent list")
+    end
 end
 local className, classFilename, classId = UnitClass("player")
 aura_env.restock.className = className:lower()
 
-function aura_env:DebugPrint(message)
-    if not aura_env.restock.debug then return end
-    print(">\124cFF85e5ccRestock\124r< [DEBUG] " .. message)
-end
-
-function aura_env:Print(message)
-    print(">\124cFF85e5ccRestock\124r< " .. message)
-end
 
 function aura_env.restock:BuildMerchantTable()
     -- Clear the table before rebuilding
@@ -205,7 +307,7 @@ function aura_env.restock:AddPoisonReagents(poisonID, quantity)
     -- Check if there are any poisons left in inventory
     local restock = quantity - C_Item.GetItemCount(poisonID)
     aura_env:DebugPrint("AddPoisonReagents: poisonID=" .. poisonID ..
-        " desired=" .. quantity .. " restock=" .. restock)
+    " desired=" .. quantity .. " restock=" .. restock)
     if restock <= 0 then return end
     for reagentID, quant in pairs(aura_env.restock.poisons[poisonID]) do
         if type(quant) == "number" then

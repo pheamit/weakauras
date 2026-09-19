@@ -1,0 +1,8 @@
+{
+  "json": "restock_tbc_table_data.json",
+  "mappings": [
+    { "path": "d.actions.init.custom", "file": "init.lua" },
+    { "path": "d.triggers.1.trigger.custom", "file": "trigger.lua" },
+    { "path": "d.triggers.1.untrigger.custom", "file": "untrigger.lua" }
+  ]
+}
