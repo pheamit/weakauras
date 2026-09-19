@@ -330,9 +330,8 @@ function aura_env.restock:BuyPoisonReagents()
         else
             aura_env:DebugPrint("BuyPoisonReagents: missing merchant item for reagentID=" .. reagentID)
         end
-        -- Clear the table after restocking
-        aura_env.restock.poisonReagents = {}
     end
+    aura_env.restock.poisonReagents = {}
     aura_env:DebugPrint("BuyPoisonReagents: done")
 end
 
