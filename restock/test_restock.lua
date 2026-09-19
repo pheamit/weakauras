@@ -86,6 +86,8 @@ end
 
 C_CurrencyInfo = { GetCoinTextureString = function(copper) return tostring(copper) .. "c" end }
 
+COMMON_GRAY_COLOR = { WrapTextInColorCode = function(self, text) return "|cffa8a8a8" .. text .. "|r" end }
+
 WeakAuras = { ScanEvents = function() end }
 
 function UnitClass(unit)

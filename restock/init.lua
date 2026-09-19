@@ -1,10 +1,17 @@
+aura_env.color = "FF85e5cc"
+aura_env.colorName = (">\124c%s%s\124r<"):format(aura_env.color, "Restock")
+
 function aura_env:DebugPrint(message)
     if not aura_env.restock.debug then return end
-    print(">\124cFF85e5ccRestock\124r< [DEBUG] " .. message)
+    if not message then return end
+    local coloredMsg = COMMON_GRAY_COLOR:WrapTextInColorCode("[DEBUG] " .. message)
+    print(("%s %s"):format(aura_env.colorName, coloredMsg))
 end
 
 function aura_env:Print(message)
-    print(">\124cFF85e5ccRestock\124r< " .. message)
+    if not message then return end
+    local coloredMsg = COMMON_GRAY_COLOR:WrapTextInColorCode(message)
+    print(("%s %s"):format(aura_env.colorName, coloredMsg))
 end
 
 local version = select(4, GetBuildInfo())
