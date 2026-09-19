@@ -363,7 +363,6 @@ function aura_env.restock:Restock(reagentID, quantity, check)
         BuyMerchantItem(merchantItems[reagentID].idx,
             merchantItems[reagentID].stackSize)
         restock = restock - merchantItems[reagentID].stackSize
-        C_Timer.After(0.1, function() end)
     end
     if restock > 0 then
         BuyMerchantItem(merchantItems[reagentID].idx, restock)
