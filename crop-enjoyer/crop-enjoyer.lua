@@ -71,9 +71,6 @@ local function MarkMissingItem(item)
     return true
 end
 
--- Exposed on aura_env.trinkets (rather than left as the bare local above) so
--- trigger-conditions.lua's own custom trigger functions - a separate Lua
--- chunk that only shares state via aura_env - can use the same check.
 function aura_env.trinkets:IsEffectivelyMounted()
     return IsMounted() or IsInDruidFlightForm()
 end

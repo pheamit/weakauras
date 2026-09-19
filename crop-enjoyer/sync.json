@@ -1,0 +1,8 @@
+{
+  "json": "table-data.json",
+  "mappings": [
+    { "path": "d.actions.init.custom", "file": "crop-enjoyer.lua" },
+    { "path": "d.triggers.1.trigger.custom", "file": "trigger-conditions.lua", "marker": "-- Trigger 1" },
+    { "path": "d.triggers.2.trigger.custom", "file": "trigger-conditions.lua", "marker": "-- Trigger 2" }
+  ]
+}
